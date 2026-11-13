@@ -99,6 +99,18 @@ export type IssueKind =
   | 'gap_warning'
   | 'unparsed';
 
+export type IssueEventType = 'detected' | 'auto_closed' | 'reopened' | 'resolved';
+
+export interface IssueEvent {
+  id: number;
+  event_type: IssueEventType;
+  event_type_label: string;
+  actor: string;
+  note: string;
+  detail: Record<string, unknown>;
+  created_at: string | null;
+}
+
 export interface IssueItem {
   id: number;
   issue_key: string;
@@ -121,7 +133,60 @@ export interface IssueItem {
   chapter_time_tc: string | null;
   resolved_by: string;
   resolution_note: string;
+  occurrence_count: number;
   created_at: string | null;
+  updated_at: string | null;
+  last_seen_at: string | null;
+}
+
+export interface IssueHistoryTicket {
+  id: number;
+  kind: IssueKind;
+  kind_label: string;
+  status: 'open' | 'resolved';
+  severity: string;
+  message: string;
+  suggestion: string;
+  window_start_tc: string | null;
+  resolution_note: string;
+  resolved_by: string;
+  occurrence_count: number;
+  last_seen_at: string | null;
+  events: IssueEvent[];
+}
+
+export interface IssueHistoryResponse {
+  issue: {
+    id: number;
+    issue_key: string;
+    kind: IssueKind;
+    kind_label: string;
+    status: 'open' | 'resolved';
+    severity: string;
+    message: string;
+    suggestion: string;
+    occurrence_count: number;
+    episode_code: string | null;
+    resolved_by: string;
+    resolution_note: string;
+    created_at: string | null;
+    last_seen_at: string | null;
+  };
+  events: IssueEvent[];
+}
+
+export interface RescanResult {
+  episodes: number;
+  opened: number;
+  reopened: number;
+  auto_closed: number;
+  unchanged: number;
+  open: number;
+  resolved: number;
+  total: number;
+  by_kind: IssueSummary['by_kind'];
+  gap: number;
+  unparsed: number;
 }
 
 export interface IssueSummary {
@@ -182,6 +247,7 @@ export interface EpisodeDetail {
     window_start_tc: string | null;
     resolution_note: string;
   }[];
+  issue_history: IssueHistoryTicket[];
   validation: {
     reordered: number;
     merged: number;

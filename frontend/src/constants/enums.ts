@@ -58,6 +58,21 @@ export const ISSUE_SEVERITY_TONE: Record<string, 'bad' | 'warn' | 'muted'> = {
   info: 'muted',
 };
 
+/** 复核经过事件类型 -> 文案 / 状态色 */
+export const ISSUE_EVENT_TONE: Record<string, 'bad' | 'ok' | 'warn' | 'muted'> = {
+  detected: 'bad',
+  reopened: 'warn',
+  auto_closed: 'ok',
+  resolved: 'ok',
+};
+
+export const ISSUE_EVENT_LABELS: Record<string, string> = {
+  detected: '发现异常',
+  auto_closed: '自动关闭',
+  reopened: '重新打开',
+  resolved: '人工处置',
+};
+
 export const TASK_STATUS_LABELS: Record<string, string> = {
   queued: '排队中',
   running: '运行中',

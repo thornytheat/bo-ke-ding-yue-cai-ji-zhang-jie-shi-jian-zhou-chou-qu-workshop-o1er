@@ -65,7 +65,7 @@ def test_out_of_order_is_reported_and_corrected():
     assert result.issue_count == 1
     assert result.kind_counts() == {"out_of_order": 1}
     issue = result.issues[0]
-    assert issue.issue_key == "EP-T03:out_of_order:3"
+    assert issue.issue_key == "EP-T03:out_of_order:ord2"
     assert issue.chapter_id == 3
     assert issue.window_start == 120
     assert issue.severity == "warn"
@@ -165,7 +165,7 @@ def test_gap_over_threshold_emits_warning_and_suggestion():
     assert "8 分钟" in issue.suggestion
     assert result.gaps == [
         {
-            "issue_key": "EP-T10:gap:0-600",
+            "issue_key": "EP-T10:gap:0-600",  # 缺口工单按时间锚点，重解析前后保持稳定
             "from_start": 0,
             "to_start": 600,
             "gap_seconds": 600,
@@ -209,7 +209,7 @@ def test_all_unparsed_reports_row_issues_plus_all_issue():
     assert result.issue_count == 3
     assert result.kind_counts() == {"unparsed": 3}
     keys = {issue.issue_key for issue in result.issues}
-    assert keys == {"EP-T13:unparsed:1", "EP-T13:unparsed:2", "EP-T13:unparsed:all"}
+    assert keys == {"EP-T13:unparsed:ord0", "EP-T13:unparsed:ord1", "EP-T13:unparsed:all"}
 
 
 def test_mixed_unparsed_and_parsed_rows():

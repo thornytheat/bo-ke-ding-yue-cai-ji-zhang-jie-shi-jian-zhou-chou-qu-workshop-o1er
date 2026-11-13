@@ -63,6 +63,15 @@ class IssueStatus(StrEnum):
     RESOLVED = "resolved"
 
 
+class IssueEventType(StrEnum):
+    """异常复核经过的事件类型（append-only，同一工单可经历多轮发现→关闭→重新打开）。"""
+
+    DETECTED = "detected"          # 校验器发现异常，工单进入待处理
+    AUTO_CLOSED = "auto_closed"    # 复扫/重解析后异常消失，系统自动关闭
+    REOPENED = "reopened"          # 已关闭的异常再次出现，重新进入待处理
+    RESOLVED = "resolved"          # 人工处置
+
+
 class TaskMode(StrEnum):
     INGEST = "ingest"
     PARSE = "parse"
@@ -121,6 +130,13 @@ ISSUE_KIND_ORDER: list[str] = [
 ISSUE_STATUS_LABELS: dict[str, str] = {
     IssueStatus.OPEN.value: "待处理",
     IssueStatus.RESOLVED.value: "已处置",
+}
+
+ISSUE_EVENT_LABELS: dict[str, str] = {
+    IssueEventType.DETECTED.value: "发现异常",
+    IssueEventType.AUTO_CLOSED.value: "自动关闭",
+    IssueEventType.REOPENED.value: "重新打开",
+    IssueEventType.RESOLVED.value: "人工处置",
 }
 
 TASK_MODE_LABELS: dict[str, str] = {

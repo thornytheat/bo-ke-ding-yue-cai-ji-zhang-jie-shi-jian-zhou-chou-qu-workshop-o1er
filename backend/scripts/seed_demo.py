@@ -22,6 +22,7 @@ from src.config.database import session_scope
 from src.constants.enums import (
     ChapterSource,
     IngestState,
+    IssueEventType,
     ParseStatus,
     TaskStatus,
 )
@@ -31,6 +32,7 @@ from src.models.chapter_issue import ChapterIssue
 from src.models.digest_task import DigestTask
 from src.models.episode import Episode
 from src.models.feed import Feed
+from src.models.issue_event import IssueEvent
 from src.models.user import User
 from src.services import validation_service
 from src.services.parse_service import parse_show_notes
@@ -186,20 +188,32 @@ def ensure_issues(db, episodes: dict[str, Episode], force: bool, created_chapter
         for draft in result.issues:
             if draft.issue_key in existing:
                 continue
+            issue = ChapterIssue(
+                issue_key=draft.issue_key,
+                episode_id=episode.id,
+                chapter_id=draft.chapter_id,
+                kind=draft.kind,
+                status="open",
+                severity=draft.severity,
+                message=draft.message,
+                suggestion=draft.suggestion,
+                window_start=draft.window_start,
+                window_end=draft.window_end,
+                detected_by="validator",
+                occurrence_count=1,
+                last_seen_at=utcnow(),
+                seed_key=f"seed:issue:{draft.issue_key}",
+            )
+            db.add(issue)
+            db.flush()
+            # 种子工单也补一条「发现异常」事件，保证复核经过从第一轮就完整
             db.add(
-                ChapterIssue(
-                    issue_key=draft.issue_key,
-                    episode_id=episode.id,
-                    chapter_id=draft.chapter_id,
-                    kind=draft.kind,
-                    status="open",
-                    severity=draft.severity,
-                    message=draft.message,
-                    suggestion=draft.suggestion,
-                    window_start=draft.window_start,
-                    window_end=draft.window_end,
-                    detected_by="validator",
-                    seed_key=f"seed:issue:{draft.issue_key}",
+                IssueEvent(
+                    issue_id=issue.id,
+                    event_type=IssueEventType.DETECTED.value,
+                    actor="validator",
+                    note=draft.message,
+                    detail={"kind": draft.kind, "severity": draft.severity, "layer": "seed"},
                 )
             )
         db.flush()

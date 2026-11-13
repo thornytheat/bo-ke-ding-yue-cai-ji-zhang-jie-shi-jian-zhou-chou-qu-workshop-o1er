@@ -1,4 +1,4 @@
-"""异常工单 controller：列表 / 汇总 / 处置 / 全量复扫。"""
+"""异常工单 controller：列表 / 汇总 / 复核经过 / 处置 / 全量复扫。"""
 from __future__ import annotations
 
 from fastapi import Request
@@ -21,6 +21,10 @@ def list_issues(
 
 def summary(db: Session) -> dict:
     return issue_service.issue_summary(db)
+
+
+def history(db: Session, issue_id: int) -> dict:
+    return issue_service.issue_history(db, issue_id)
 
 
 def resolve_issue(db: Session, issue_id: int, note: str, principal: dict, request: Request) -> dict:
@@ -48,7 +52,14 @@ def rescan(db: Session, principal: dict, request: Request) -> dict:
         action="issue.rescan",
         entity="chapter_issue",
         entity_id="all",
-        detail={"open": result["open"], "resolved": result["resolved"]},
+        detail={
+            "open": result["open"],
+            "resolved": result["resolved"],
+            "opened": result["opened"],
+            "reopened": result["reopened"],
+            "auto_closed": result["auto_closed"],
+            "unchanged": result["unchanged"],
+        },
         ip=request.client.host if request.client else None,
     )
     db.commit()

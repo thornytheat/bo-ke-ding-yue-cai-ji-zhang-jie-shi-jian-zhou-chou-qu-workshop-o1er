@@ -36,6 +36,15 @@ class ChapterInput:
     def ident(self) -> str:
         return str(self.id) if self.id is not None else f"ord{self.ordinal}"
 
+    @property
+    def key_ident(self) -> str:
+        """issue_key 里的稳定锚点：用 show notes 行序（ordinal）而不是章节行 id。
+
+        重解析会删掉重建章节行、id 随之变化；同一位置的异常用 ordinal 才能在
+        复扫时认出「还是同一个问题」，从而触发重新打开而不是重复建单。
+        """
+        return f"ord{self.ordinal}"
+
 
 @dataclass
 class IssueDraft:
@@ -108,7 +117,7 @@ def validate_episode(
             result.issues.append(
                 IssueDraft(
                     kind=IssueKind.UNPARSED.value,
-                    issue_key=f"{episode_code}:unparsed:{chapter.ident}",
+                    issue_key=f"{episode_code}:unparsed:{chapter.key_ident}",
                     chapter_id=chapter.id,
                     message=f"时间码未识别：「{chapter.raw_text or chapter.title}」",
                     suggestion="按 mm:ss 或 hh:mm:ss 补录时间点，再重跑解析",
@@ -140,7 +149,7 @@ def validate_episode(
             result.issues.append(
                 IssueDraft(
                     kind=IssueKind.OUT_OF_ORDER.value,
-                    issue_key=f"{episode_code}:out_of_order:{chapter.ident}",
+                    issue_key=f"{episode_code}:out_of_order:{chapter.key_ident}",
                     chapter_id=chapter.id,
                     message=(
                         f"第 {chapter.ordinal + 1} 行时间点 {to_short_timecode(chapter.start_seconds)} "
@@ -177,7 +186,7 @@ def validate_episode(
             result.issues.append(
                 IssueDraft(
                     kind=IssueKind.OVERLAP.value,
-                    issue_key=f"{episode_code}:overlap:{start}:{'-'.join(sorted(row.ident for row in group))}",
+                    issue_key=f"{episode_code}:overlap:{start}:{'-'.join(sorted(row.key_ident for row in group))}",
                     chapter_id=keeper.id,
                     message=(
                         f"{len(group)} 个章节挤在同一时间点 {to_short_timecode(start)}："
@@ -219,7 +228,7 @@ def validate_episode(
             result.issues.append(
                 IssueDraft(
                     kind=IssueKind.OVER_DURATION.value,
-                    issue_key=f"{episode_code}:over_duration:{row.chapter_id or row.start_seconds}",
+                    issue_key=f"{episode_code}:over_duration:t{row.start_seconds}",
                     chapter_id=row.chapter_id,
                     message=(
                         f"时间点 {to_short_timecode(row.start_seconds)} 超出单集时长 "
@@ -248,7 +257,7 @@ def validate_episode(
             result.issues.append(
                 IssueDraft(
                     kind=IssueKind.TOO_SHORT.value,
-                    issue_key=f"{episode_code}:too_short:{row.chapter_id or row.start_seconds}",
+                    issue_key=f"{episode_code}:too_short:t{row.start_seconds}",
                     chapter_id=row.chapter_id,
                     message=(
                         f"章节「{row.title}」窗口仅 {window} 秒（< {SHORT_CHAPTER_SECONDS}s），"

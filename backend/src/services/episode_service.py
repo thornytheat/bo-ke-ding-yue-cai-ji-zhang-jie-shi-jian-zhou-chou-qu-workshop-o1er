@@ -159,6 +159,7 @@ def _notes_view(episode: Episode) -> list[dict]:
 
 
 def _open_issue_view(db, episode: Episode) -> list[dict]:
+    """保留兼容口径：仅当前待处理工单（事件时间轴走 episode_issue_history）。"""
     rows = list(
         db.scalars(
             select(ChapterIssue)
@@ -205,6 +206,7 @@ def episode_detail(db, code: str) -> dict:
         "show_notes": episode.show_notes,
         "notes_lines": _notes_view(episode),
         "issues": _open_issue_view(db, episode),
+        "issue_history": issue_service.episode_issue_history(db, episode),
         "validation": validation.to_plan(),
     }
 
@@ -250,7 +252,7 @@ def normalize_episode(db, code: str) -> dict:
 
     kept_ids = {row.id for row in kept}
     drop_ids = [chapter.id for chapter in chapters if chapter.id not in kept_ids]
-    issue_service.purge_for_chapters(db, drop_ids)
+    issue_service.detach_chapter_issues(db, drop_ids)
     deleted = 0
     for chapter in chapters:
         if chapter.id in kept_ids:

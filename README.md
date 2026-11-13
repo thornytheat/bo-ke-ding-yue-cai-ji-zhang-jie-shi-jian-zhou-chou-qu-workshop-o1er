@@ -126,7 +126,18 @@ cd frontend && npm install && npm run dev   # /api 代理到 19252
 | Chapter 章节 | `chapters` | `models/chapter.py` → `schemas/episode.py` → `services/chapter_service.py` → `controllers/chapter_controller.py` → `routes/episodes.py` → `api/episodes.ts` → `pages/EpisodeDetail.tsx` |
 | DigestTask 采集批次 | `digest_tasks` | `models/digest_task.py` → `schemas/task.py` → `services/task_service.py` / `digest_service.py` → `controllers/task_controller.py` → `routes/tasks.py` → `api/tasks.ts` → `pages/Feeds.tsx` |
 
-支撑表：`chapter_issues`（不变量校验产出的异常工单，可人工处置）、`audit_logs`（审计）、`users`。
+支撑表：`chapter_issues`（不变量校验产出的异常工单，可反复打开/处置）、`issue_events`（append-only 复核经过：发现 / 自动关闭 / 重新打开 / 人工处置）、`audit_logs`（审计）、`users`。
+
+### 异常工单的生命周期（同一异常反复出现不丢历史）
+
+`chapter_issues.issue_key` 是按「单集 code + 异常类型 + show notes 行序/时间锚点」生成的稳定自然键，不随章节行 id 变化（重新解析会删建章节行）。同一逻辑异常永远归并到同一张工单：
+
+1. 校验器首次发现 → 工单 `open`，追加一条 `detected` 事件；
+2. 复扫/重解析后异常消失 → 自动置 `resolved`（`system:rescan`），追加 `auto_closed` 事件；
+3. 已关闭的异常再次出现（如平台改写简介、重新解析）→ 工单重新置 `open`、`occurrence_count + 1`，追加 `reopened` 事件，**每一轮的发现、自动关闭与人工处置结论都保留在 `issue_events` 里不被覆盖**；
+4. 人工处置 → 追加 `resolved` 事件并记录处置人/依据；重复处置返回 409。
+
+复扫结果按本次变化拆成四个计数返回：`opened`（新建）/ `reopened`（重新打开）/ `auto_closed`（自动关闭）/ `unchanged`（状态未变）。**重复复扫在结果不变时对工单和事件流零写入**，不新增也不覆盖复核记录。异常队列页可按单集展开，查看当前状态与每张工单的完整复核经过；单集详情侧栏同样展示全部工单与事件时间轴。
 
 ## 7. 目录
 
@@ -143,7 +154,7 @@ gb-579/
 │   └── src/
 │       ├── config/             # settings / database / app / celery_app
 │       ├── constants/          # enums（共享枚举唯一定义）/ roles / error_codes / limits
-│       ├── models/             # 7 张表
+│       ├── models/             # 8 张表
 │       ├── schemas/            # 入参校验
 │       ├── services/           # parse / validation / digest / fixture / feed / episode / chapter / issue / export / task / summary / audit
 │       ├── controllers/        # 8 个 controller
@@ -214,10 +225,10 @@ gb-579/
 
 `backend/scripts/seed_demo.py`：
 
-- 3 账号 / 6 订阅源 / 48 单集 / **260 章节** / **22 异常工单** / 4 条历史批次；
+- 3 账号 / 6 订阅源 / 48 单集 / **260 章节** / **22 异常工单 + 22 条发现事件** / 4 条历史批次；
 - 章节与工单**不是手写常量**：seed 调用生产同款 `parse_service` + `validation_service`，所以种子里的数字就是算法跑出来的数字；
 - 自然键 upsert：`users.email`、`feeds.code`、`episodes.guid`、`chapters.seed_key`、`chapter_issues.issue_key`、`digest_tasks.code`；
-- 重复执行不新增、不覆盖人工修改（章节只在「该集还没有任何章节」时生成；工单只补缺失 key）；
+- 重复执行不新增、不覆盖人工修改（章节只在「该集还没有任何章节」时生成；工单只补缺失 key，并为新工单补一条 `detected` 事件）；
 - 结束打印一行（两次运行逐字一致）：
 
 ```
@@ -239,6 +250,7 @@ SEED_SUMMARY brand=podcastdig feeds=6 episodes=48 chapters=260 issues=22 users=3
 | `ChapterSource` | `constants/enums.py` | `constants/enums.ts` | `chapters.source`、详情表来源列、`ChapterTimeline` 手动标记 |
 | `IssueKind` | `constants/enums.py` | `constants/enums.ts`（含展示顺序） | `chapter_issues.kind`、异常队列筛选、`IssueMixBar` 配色 |
 | `IssueStatus` | `constants/enums.py` | `types/models.ts` | `chapter_issues.status`、异常队列状态列 |
+| `IssueEventType` | `constants/enums.py` | `types/models.ts` + `constants/enums.ts`（文案/配色） | `issue_events.event_type`、复核经过时间轴 |
 | `TaskMode` / `TaskStatus` | `constants/enums.py` | `constants/enums.ts` | `digest_tasks.mode/status`、Feeds 批次账本 |
 
 `constants/roles.py`（权限点）与 `frontend/src/constants/roles.ts` 也是成对维护。

@@ -12,6 +12,7 @@ from src.models.episode import Episode  # noqa: E402
 from src.models.chapter import Chapter  # noqa: E402
 from src.models.digest_task import DigestTask  # noqa: E402
 from src.models.chapter_issue import ChapterIssue  # noqa: E402
+from src.models.issue_event import IssueEvent  # noqa: E402
 from src.models.audit import AuditLog  # noqa: E402
 
 __all__ = [
@@ -22,5 +23,6 @@ __all__ = [
     "Chapter",
     "DigestTask",
     "ChapterIssue",
+    "IssueEvent",
     "AuditLog",
 ]

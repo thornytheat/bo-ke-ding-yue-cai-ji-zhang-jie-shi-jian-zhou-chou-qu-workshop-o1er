@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import ChapterTimeline from '../components/common/ChapterTimeline';
 import EmptyState from '../components/common/EmptyState';
+import IssueTimeline from '../components/common/IssueTimeline';
 import StatusPill from '../components/common/StatusPill';
 import TapeLabel from '../components/common/TapeLabel';
 import Timecode from '../components/common/Timecode';
@@ -88,7 +89,8 @@ export default function EpisodeDetail() {
     return <div className="skeleton-table">正在展开磁带 …</div>;
   }
 
-  const { episode, feed, chapters, notes_lines, issues, validation } = data;
+  const { episode, feed, chapters, notes_lines, issue_history: issueHistory, validation } = data;
+  const openHistoryCount = issueHistory.filter((item) => item.status === 'open').length;
   const selected = chapters.find((chapter) => chapter.id === selectedId) ?? null;
 
   return (
@@ -390,22 +392,35 @@ export default function EpisodeDetail() {
           </div>
 
           <TapeLabel
-            eyebrow="ISSUES · 校验结论"
-            title={issues.length ? `${issues.length} 条待处理` : '本集没有待处理异常'}
+            eyebrow="ISSUES · 复核经过"
+            title={
+              issueHistory.length
+                ? `${openHistoryCount} 条待处理 / 共 ${issueHistory.length} 张工单`
+                : '本集没有异常工单'
+            }
             tone="plain"
           />
           <ul className="issue-list">
-            {issues.length === 0 && <li className="issue-empty muted">窗口不变量全部通过。</li>}
-            {issues.map((issue) => (
-              <li key={issue.id} className="issue-item">
+            {issueHistory.length === 0 && <li className="issue-empty muted">窗口不变量全部通过。</li>}
+            {issueHistory.map((ticket) => (
+              <li key={ticket.id} className="issue-item">
                 <div className="issue-head">
-                  <StatusPill tone={ISSUE_SEVERITY_TONE[issue.severity] ?? 'warn'}>
-                    {issue.kind_label}
-                  </StatusPill>
-                  {issue.window_start_tc && <span className="mono muted">{issue.window_start_tc}</span>}
+                  <StatusPill tone={ISSUE_SEVERITY_TONE[ticket.severity] ?? 'warn'}>{ticket.kind_label}</StatusPill>
+                  {ticket.status === 'open' ? (
+                    <StatusPill tone="bad" dot>
+                      待处理
+                    </StatusPill>
+                  ) : (
+                    <StatusPill tone="ok">已处置</StatusPill>
+                  )}
+                  {ticket.occurrence_count > 1 && (
+                    <span className="chip mono chip-soft">第 {ticket.occurrence_count} 次出现</span>
+                  )}
+                  {ticket.window_start_tc && <span className="mono muted">{ticket.window_start_tc}</span>}
                 </div>
-                <p className="issue-msg">{issue.message}</p>
-                <p className="issue-fix">建议：{issue.suggestion}</p>
+                <p className="issue-msg">{ticket.message}</p>
+                <p className="issue-fix">建议：{ticket.suggestion}</p>
+                <IssueTimeline events={ticket.events} compact />
               </li>
             ))}
           </ul>

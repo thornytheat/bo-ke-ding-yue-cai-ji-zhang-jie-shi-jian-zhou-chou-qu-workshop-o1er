@@ -179,7 +179,9 @@ def rebuild_chapters(db, episode: Episode) -> dict:
         )
     )
     if auto_rows:
-        issue_service.purge_for_chapters(db, [row.id for row in auto_rows])
+        # 只解除工单与旧章节行的外键关联，不删工单：复核经过（事件流）完整保留，
+        # 紧接着的 sync_episode_issues 会按 issue_key 归并并自动关闭/重新关联。
+        issue_service.detach_chapter_issues(db, [row.id for row in auto_rows])
     for row in auto_rows:
         db.delete(row)
     db.flush()

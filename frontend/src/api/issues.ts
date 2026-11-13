@@ -1,5 +1,5 @@
 import { http } from './client';
-import type { IssueItem, IssueSummary, Paginated } from '../types/models';
+import type { IssueHistoryResponse, IssueItem, IssueSummary, Paginated, RescanResult } from '../types/models';
 
 export interface IssueQuery {
   kind?: string;
@@ -20,7 +20,8 @@ export const issueApi = {
     return http.get<Paginated<IssueItem>>(`/issues${suffix}`);
   },
   summary: () => http.get<IssueSummary>('/issues/summary'),
+  history: (id: number) => http.get<IssueHistoryResponse>(`/issues/${id}/history`),
   resolve: (id: number, note: string) =>
     http.post<{ issue: { id: number; status: string }; summary: IssueSummary }>(`/issues/${id}/resolve`, { note }),
-  rescan: () => http.post<{ episodes: number; open: number; resolved: number; total: number }>('/issues/rescan'),
+  rescan: () => http.post<RescanResult>('/issues/rescan'),
 };

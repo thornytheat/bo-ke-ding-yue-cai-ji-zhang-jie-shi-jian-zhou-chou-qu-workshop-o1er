@@ -2047,3 +2047,231 @@ code {
   color: var(--cream-faint);
   margin-bottom: 4px;
 }
+
+/* ---------- 异常复核生命周期（事件时间轴 / 单集展开 / 复扫统计） ---------- */
+.chip-soft {
+  border-style: solid;
+  border-color: var(--rule-soft);
+  background: oklch(0.3 0.015 56 / 0.55);
+}
+
+.occur-badge {
+  display: inline-flex;
+  margin-left: 6px;
+  padding: 2px 6px;
+  font-size: 0.62rem;
+  letter-spacing: 0.03em;
+  color: var(--tape-soft);
+  border: 1px solid var(--tape-deep);
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+/* 按单集分组的工单表 */
+.episode-group-row {
+  cursor: pointer;
+  background: oklch(0.285 0.016 56 / 0.9);
+  border-top: 1px solid var(--rule);
+}
+
+.episode-group-row:hover {
+  background: oklch(0.32 0.018 56 / 0.95);
+}
+
+.episode-group-row-open {
+  background: oklch(0.33 0.02 56 / 0.95);
+}
+
+.episode-caret {
+  display: inline-block;
+  width: 16px;
+  color: var(--tape-soft);
+  margin-right: 4px;
+}
+
+.issue-row td:first-child {
+  padding-left: 30px;
+}
+
+.episode-detail-row td {
+  padding: 12px 16px 18px !important;
+  background: oklch(0.235 0.012 58 / 0.9);
+  border-bottom: 1px solid var(--rule);
+}
+
+.episode-detail-pop {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: clamp(14px, 2vw, 28px);
+  align-items: start;
+}
+
+.episode-detail-section {
+  min-width: 0;
+}
+
+.issue-review-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.issue-review-card {
+  border: 1px solid var(--rule-soft);
+  border-left: 2px solid var(--tape-deep);
+  padding: 8px 10px;
+  background: oklch(0.255 0.013 58 / 0.6);
+}
+
+.issue-review-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* 复核经过事件时间轴 */
+.issue-timeline {
+  list-style: none;
+  margin: 8px 0 2px;
+  padding: 0 0 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issue-timeline-item {
+  position: relative;
+  padding-left: 16px;
+}
+
+.issue-timeline-item::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 12px;
+  bottom: -10px;
+  width: 1px;
+  background: var(--rule-soft);
+}
+
+.issue-timeline-item:last-child::before {
+  display: none;
+}
+
+.issue-timeline-dot {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tape);
+  box-shadow: 0 0 0 2px oklch(0.255 0.013 58 / 0.9);
+}
+
+.issue-timeline-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.issue-timeline-meta {
+  font-size: 0.64rem;
+}
+
+.issue-timeline-note {
+  margin: 3px 0 0;
+  font-size: 0.72rem;
+  color: var(--cream-soft);
+  line-height: 1.45;
+}
+
+.issue-timeline-sub {
+  margin: 2px 0 0;
+  font-size: 0.64rem;
+}
+
+.issue-timeline-compact .issue-timeline-note {
+  font-size: 0.68rem;
+}
+
+.issue-timeline-empty {
+  font-size: 0.72rem;
+  padding: 6px 0;
+}
+
+/* 复扫结果卡 */
+.rescan-card {
+  border: 1px solid var(--rule-soft);
+  background: oklch(0.262 0.014 58 / 0.75);
+  padding: 12px 16px 14px;
+  margin-bottom: 18px;
+}
+
+.rescan-card-head {
+  margin-bottom: 10px;
+}
+
+.rescan-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rescan-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+  border: 1px solid var(--rule-soft);
+  background: oklch(0.24 0.012 58 / 0.7);
+}
+
+.rescan-stat-num {
+  font-size: 1.5rem;
+  line-height: 1.1;
+}
+
+.rescan-stat-label {
+  font-size: 0.68rem;
+  color: var(--cream-faint);
+  letter-spacing: 0.06em;
+}
+
+.rescan-stat-open .rescan-stat-num {
+  color: var(--bad);
+}
+
+.rescan-stat-reopen .rescan-stat-num {
+  color: var(--tape-soft);
+}
+
+.rescan-stat-closed .rescan-stat-num {
+  color: var(--ok);
+}
+
+.rescan-stat-same .rescan-stat-num {
+  color: var(--cream-faint);
+}
+
+.rescan-foot {
+  margin: 10px 0 0;
+  font-size: 0.68rem;
+}
+
+@media (max-width: 900px) {
+  .episode-detail-pop {
+    grid-template-columns: 1fr;
+  }
+
+  .rescan-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

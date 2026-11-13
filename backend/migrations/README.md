@@ -13,3 +13,9 @@
 1. 改 `src/models/*.py`；
 2. 同步改本目录新增 `000N_*.sql`（只增不改历史文件）；
 3. 若已有环境需要在线变更，单独写 migration 并在 README 记录。
+
+已记录的结构变更：
+
+- `0002_issue_lifecycle_events.sql`：异常工单可重新打开（`occurrence_count` / `last_seen_at` /
+  `updated_at`），新增 append-only 的 `issue_events` 事件流，保留每轮发现、自动关闭、
+  重新打开与人工处置结论；同时把存量工单回填出对应事件。

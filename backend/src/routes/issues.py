@@ -34,6 +34,15 @@ def summary(
     return issue_controller.summary(db)
 
 
+@router.get("/{issue_id}/history")
+def history(
+    issue_id: int,
+    principal: dict = Depends(require_roles(*READ_ROLES)),
+    db: Session = Depends(get_db),
+) -> dict:
+    return issue_controller.history(db, issue_id)
+
+
 @router.post("/rescan")
 def rescan(
     request: Request,

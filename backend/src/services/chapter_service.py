@@ -148,7 +148,7 @@ def delete_chapter(db, episode_code: str, chapter_id: int, actor_email: str) -> 
     chapter = db.get(Chapter, chapter_id)
     if chapter is None or chapter.episode_id != episode.id:
         raise AppError("CHAPTER_NOT_FOUND", 404, detail=f"chapter={chapter_id}")
-    issue_service.purge_for_chapters(db, [chapter.id])
+    issue_service.detach_chapter_issues(db, [chapter.id])
     db.delete(chapter)
     db.flush()
     _resequence(db, episode.id)
